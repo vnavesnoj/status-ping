@@ -1,13 +1,17 @@
 package vnavesnoj.status_ping_service.entity;
 
-import lombok.Value;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author vnavesnoj
  * @mail vnavesnoj@gmail.com
  */
-@Value
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserEntity {
 
-    String nickname;
+    private String nickname;
 }

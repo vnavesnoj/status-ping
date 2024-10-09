@@ -12,7 +12,7 @@ spring:
 app:
   sql:
     findAllByNickname:
-      path: D:\Work\projects\status-ping\sql-request.sql
+      path: file:D:\Work\projects\status-ping\sql-request.sql
 
 logging:
   level:

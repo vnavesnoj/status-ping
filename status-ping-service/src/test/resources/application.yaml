@@ -1,0 +1,4 @@
+app:
+  sql:
+    findAllByNickname:
+      path: classpath:test-script.sql

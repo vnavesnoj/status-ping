@@ -4,7 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -31,7 +31,7 @@ public class UserRepositoryImpl implements UserRepository {
                               String commandPath,
                               @Autowired ResourceLoader resourceLoader) {
         this.jdbcTemplate = jdbcTemplate;
-        final var resource = resourceLoader.getResource("file:" + commandPath);
+        final var resource = resourceLoader.getResource(commandPath);
         try {
             findAllByNicknameCommand = resource.getContentAsString(StandardCharsets.UTF_8);
             log.info("findAllByNicknameCommand is set from file: %s".formatted(commandPath));
@@ -46,7 +46,7 @@ public class UserRepositoryImpl implements UserRepository {
     public List<UserEntity> findAllConnectionsByUserNickname(String nickname) {
         log.trace(UserRepositoryImpl.class.getCanonicalName() + ": findAllConnectionByUserNickname(%s)".formatted(nickname));
         final var params = new MapSqlParameterSource("nickname", nickname);
-        final var result = jdbcTemplate.query(findAllByNicknameCommand, params, new BeanPropertyRowMapper<UserEntity>());
+        final var result = jdbcTemplate.query(findAllByNicknameCommand, params, new SingleColumnRowMapper<>(UserEntity.class));
         log.debug("findAllConnectionByUserNickname(%s): fetched data = %s".formatted(nickname, result));
         return result;
     }

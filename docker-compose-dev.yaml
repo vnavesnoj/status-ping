@@ -1,0 +1,10 @@
+name: 'status-ping-dev-2-configuration'
+services:
+  postgres:
+    image: 'postgres:16.4'
+    environment:
+      - 'POSTGRES_DB=status-ping-dev-bd'
+      - 'POSTGRES_PASSWORD=pass'
+      - 'POSTGRES_USER=postgres'
+    ports:
+      - '5435:5432'

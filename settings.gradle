@@ -1,3 +1,4 @@
 rootProject.name = 'status-ping'
 
 include 'status-ping-service'
+include 'status-ping-controller'

@@ -4,12 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.jdbc.Sql;
-import vnavesnoj.status_ping_service.config.ServiceAutoConfiguration;
+import vnavesnoj.status_ping_service.IT;
 import vnavesnoj.status_ping_service.entity.UserEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -19,13 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @mail vnavesnoj@gmail.com
  */
 @RequiredArgsConstructor
-@SpringBootTest
-@ContextConfiguration(classes = ServiceAutoConfiguration.class)
-@Import(TestContainersConfiguration.class)
-@Sql(scripts = {
-        "classpath:test-schema.sql",
-        "classpath:test-data.sql"
-})
+@IT
 class UserRepositoryImplTest {
 
     @Autowired

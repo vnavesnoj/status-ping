@@ -1,0 +1,21 @@
+spring:
+  profiles:
+    active: dev
+
+  jpa:
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+
+app:
+  sql:
+    findAllByNickname:
+      path: D:\Work\projects\status-ping\sql-request.sql
+
+logging:
+  level:
+    root: INFO
+    vnavesnoj.spring.database.pool: INFO
+    org.springframework.jdbc.core: INFO

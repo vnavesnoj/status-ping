@@ -1,14 +1,13 @@
 package vnavesnoj.status_ping_service.entity;
 
-import java.util.UUID;
+import lombok.Value;
 
 /**
  * @author vnavesnoj
  * @mail vnavesnoj@gmail.com
  */
+@Value
 public class UserEntity {
-
-    UUID id;
 
     String nickname;
 }

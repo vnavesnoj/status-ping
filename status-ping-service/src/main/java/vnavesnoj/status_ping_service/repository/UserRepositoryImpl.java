@@ -4,26 +4,29 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Repository;
 import vnavesnoj.status_ping_service.entity.UserEntity;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * @author vnavesnoj
  * @mail vnavesnoj@gmail.com
  */
 @Log4j2
-@Component
+@Repository
 public class UserRepositoryImpl implements UserRepository {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
 
     private final String findAllByNicknameCommand;
 
-    public UserRepositoryImpl(JdbcTemplate jdbcTemplate,
+    public UserRepositoryImpl(NamedParameterJdbcTemplate jdbcTemplate,
                               @Value("${app.sql.findAllByNickname.path}")
                               String commandPath,
                               @Autowired ResourceLoader resourceLoader) {
@@ -40,8 +43,11 @@ public class UserRepositoryImpl implements UserRepository {
 
 
     @Override
-    public UserEntity findAllConnectionsByUserNickname(String nickname) {
-        log.debug(UserRepositoryImpl.class.getCanonicalName() + ": findAllConnectionByUserNickname(%s)".formatted(nickname));
-        return null;
+    public List<UserEntity> findAllConnectionsByUserNickname(String nickname) {
+        log.trace(UserRepositoryImpl.class.getCanonicalName() + ": findAllConnectionByUserNickname(%s)".formatted(nickname));
+        final var params = new MapSqlParameterSource("nickname", nickname);
+        final var result = jdbcTemplate.query(findAllByNicknameCommand, params, new BeanPropertyRowMapper<UserEntity>());
+        log.debug("findAllConnectionByUserNickname(%s): fetched data = %s".formatted(nickname, result));
+        return result;
     }
 }

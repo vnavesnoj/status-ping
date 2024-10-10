@@ -8,7 +8,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @mail vnavesnoj@gmail.com
  */
 @SpringBootApplication(scanBasePackages = {
-        "vnavesnoj.status_ping_service"
+        "vnavesnoj.status_ping_service",
+        "vnavesnoj.status_ping_controller"
 })
 public class StatusPingApplication {
 

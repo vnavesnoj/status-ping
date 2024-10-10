@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
  * @mail vnavesnoj@gmail.com
  */
 @Configuration
-@ComponentScan("vnavesnoj.status_ping_controller")
+@ComponentScan(basePackages = {"vnavesnoj.status_ping_controller", "vnavesnoj.status_ping_service"})
 @EnableAutoConfiguration
 public class ControllerConfiguration {
 }

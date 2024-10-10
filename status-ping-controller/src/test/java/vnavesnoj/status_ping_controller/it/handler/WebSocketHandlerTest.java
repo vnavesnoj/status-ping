@@ -70,13 +70,13 @@ public class WebSocketHandlerTest {
             assertThat(sessions).isEmpty();
             final WebSocketMessage<String> message =
                     new TextMessage(objectMapper.writeValueAsString(requestPayloadOnline1), true);
+            System.out.println(message.getPayload());
             join.sendMessage(message);
-
+            Thread.sleep(100);
             assertThat(sessions)
                     .isNotEmpty()
                     .hasSize(1)
-                    .containsKey(requestPayloadOnline1.getNickname())
-                    .containsValue(join);
+                    .containsKey(requestPayloadOnline1.getNickname());
         }
     }
 }

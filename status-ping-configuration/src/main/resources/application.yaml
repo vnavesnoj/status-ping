@@ -13,6 +13,9 @@ app:
   sql:
     findAllByNickname:
       path: file:sql-request.sql
+  websocket:
+    endpoints: '/status'
+    allowed-origins: '*'
 
 logging:
   level:

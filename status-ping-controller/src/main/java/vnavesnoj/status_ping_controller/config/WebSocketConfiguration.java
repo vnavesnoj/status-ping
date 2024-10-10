@@ -22,13 +22,14 @@ import java.util.Arrays;
 public class WebSocketConfiguration implements WebSocketConfigurer {
 
     private final WebSocketHandler webSocketHandler;
+    private final WebSocketProperties webSocketProperties;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         final var endpoints = new String[]{"/status"};
         final var allowedOrigins = "*";
-        registry.addHandler(webSocketHandler, "/status")
-                .setAllowedOrigins(allowedOrigins)
+        registry.addHandler(webSocketHandler, webSocketProperties.getEndpoints())
+                .setAllowedOrigins(webSocketProperties.getAllowedOrigins())
                 .addInterceptors(new HttpSessionHandshakeInterceptor());
         log.info("Register web socket handler with endpoints: %s. Allowed origins: %s"
                 .formatted(Arrays.toString(endpoints), allowedOrigins));

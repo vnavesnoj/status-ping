@@ -5,10 +5,11 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
-import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
+
+import java.util.Arrays;
 
 /**
  * @author vnavesnoj
@@ -22,17 +23,14 @@ public class WebSocketConfiguration implements WebSocketConfigurer {
 
     private final WebSocketHandler webSocketHandler;
 
-    //    @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws").withSockJS();
-    }
-
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+        final var endpoints = new String[]{"/status"};
+        final var allowedOrigins = "*";
         registry.addHandler(webSocketHandler, "/status")
-                .setAllowedOrigins("*")
+                .setAllowedOrigins(allowedOrigins)
                 .addInterceptors(new HttpSessionHandshakeInterceptor());
-        System.out.println("__________________________________________________________");
-        log.info(registry);
+        log.info("Register web socket handler with endpoints: %s. Allowed origins: %s"
+                .formatted(Arrays.toString(endpoints), allowedOrigins));
     }
 }

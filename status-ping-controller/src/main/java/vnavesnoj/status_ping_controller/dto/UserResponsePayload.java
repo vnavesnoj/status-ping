@@ -1,9 +1,8 @@
-package vnavesnoj.status_ping_controller.handler;
+package vnavesnoj.status_ping_controller.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import vnavesnoj.status_ping_controller.dto.Status;
 
 import java.time.Instant;
 

@@ -5,6 +5,7 @@ import com.sun.security.auth.UserPrincipal;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
@@ -65,6 +66,19 @@ public class WebSocketHandler extends TextWebSocketHandler {
         super.handleTextMessage(session, message);
     }
 
+    @Override
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        try {
+            session.close();
+        } catch (IOException e) {
+            log.error("Cannot close session on afterConnectionClosed ", e);
+        }
+        Optional.of(session)
+                .map(WebSocketSession::getPrincipal)
+                .map(Principal::getName)
+                .ifPresent(activeSessions::remove);
+    }
+
     private void notifyUserAboutSuccessSessionRegister(WebSocketSession session) throws IOException {
         final var principal = Optional.ofNullable(session.getPrincipal())
                 .map(Principal::getName)
@@ -101,7 +115,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     private WebSocketSession registerNewSession(WebSocketSession session, UserRequestPayload payload) {
         final WebSocketSession updatedSession = session.getPrincipal() == null
-                || !session.getPrincipal().getName().equals(payload.getPrincipal())
+                || !payload.getPrincipal().equals(session.getPrincipal().getName())
                 ? new PrincipalWsSessionDecorator(session, new UserPrincipal(payload.getPrincipal()))
                 : session;
         Optional.of(payload)

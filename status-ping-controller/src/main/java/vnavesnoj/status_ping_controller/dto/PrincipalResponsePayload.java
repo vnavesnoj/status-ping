@@ -13,11 +13,11 @@ import java.time.Instant;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserResponsePayload {
+public class PrincipalResponsePayload {
 
-    private String user;
+    private String id;
 
-    private Status status;
+    private String principal;
 
     private Instant instant;
 }

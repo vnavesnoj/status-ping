@@ -1,12 +1,14 @@
 package vnavesnoj.status_ping_controller.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.security.auth.UserPrincipal;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+import vnavesnoj.status_ping_controller.dto.PrincipalResponsePayload;
 import vnavesnoj.status_ping_controller.dto.Status;
 import vnavesnoj.status_ping_controller.dto.UserRequestPayload;
 import vnavesnoj.status_ping_controller.dto.UserResponsePayload;
@@ -15,6 +17,7 @@ import vnavesnoj.status_ping_service.dto.UserReadDto;
 import vnavesnoj.status_ping_service.service.UserService;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -50,19 +53,37 @@ public class WebSocketHandler extends TextWebSocketHandler {
         log.debug("Handle message from web socket session. Session: %s. Message: %s".formatted(session, message));
         try {
             final var payload = objectMapper.readValue(message.getPayload(), UserRequestPayload.class);
-            addNewSession(session, payload);
-            if (payload.getStatus() != null) {
-                for (UserReadDto user : userService.findAllConnectionsByUserNickname(payload.getNickname())) {
-                    try {
-                        notifyAboutUserStatus(payload.getNickname(), user, payload.getStatus());
-                    } catch (Exception e) {
-                        log.error("Exception, when sending response to '%s' about '%s' status '%s': %s"
-                                .formatted(user.getNickname(), payload.getNickname(), payload.getStatus(), e));
-                    }
-                }
+            if (payload.getPrincipal() != null && !payload.getPrincipal().isBlank() && payload.getStatus() != null) {
+                session = registerNewSession(session, payload);
+                notifyUserAboutSuccessSessionRegister(session);
+                notifyAllUserConnectionsAboutUserStatus(payload.getPrincipal(), payload.getStatus());
             }
+
         } catch (Exception e) {
             log.error(e);
+        }
+        super.handleTextMessage(session, message);
+    }
+
+    private void notifyUserAboutSuccessSessionRegister(WebSocketSession session) throws IOException {
+        final var principal = Optional.ofNullable(session.getPrincipal())
+                .map(Principal::getName)
+                .orElseThrow(NullPointerException::new);
+        final var message = new TextMessage(objectMapper.writeValueAsString(
+                new PrincipalResponsePayload(session.getId(), principal, Instant.now())
+        ));
+        session.sendMessage(message);
+        log.debug("Notify session %s about success session register".formatted(session));
+    }
+
+    private void notifyAllUserConnectionsAboutUserStatus(@NonNull String nickname, @NonNull Status status) {
+        for (UserReadDto user : userService.findAllConnectionsByUserNickname(nickname)) {
+            try {
+                notifyAboutUserStatus(nickname, user, status);
+            } catch (Exception e) {
+                log.error("Exception, when sending response to '%s' about '%s' status '%s': %s"
+                        .formatted(user.getNickname(), nickname, status, e));
+            }
         }
     }
 
@@ -78,16 +99,21 @@ public class WebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-    private void addNewSession(WebSocketSession session, UserRequestPayload payload) {
+    private WebSocketSession registerNewSession(WebSocketSession session, UserRequestPayload payload) {
+        final WebSocketSession updatedSession = session.getPrincipal() == null
+                || !session.getPrincipal().getName().equals(payload.getPrincipal())
+                ? new PrincipalWsSessionDecorator(session, new UserPrincipal(payload.getPrincipal()))
+                : session;
         Optional.of(payload)
-                .map(UserRequestPayload::getNickname)
+                .map(UserRequestPayload::getPrincipal)
                 .ifPresentOrElse(
-                        item -> activeSessions.put(payload.getNickname(), session),
+                        item -> activeSessions.put(payload.getPrincipal(), updatedSession),
                         () -> {
                             throw new NullPointerException(
                                     UserRequestPayload.class.getCanonicalName() + ".nickname is null"
                             );
                         });
-        log.info("Added new session connection. Key: %s. Session: %s".formatted(payload.getNickname(), session));
+        log.info("Added new session connection. Key: %s. Session: %s".formatted(payload.getPrincipal(), session));
+        return updatedSession;
     }
 }

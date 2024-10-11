@@ -14,8 +14,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserRequestPayload {
 
-    @JsonProperty(required = true, value = "nickname")
-    private String nickname;
+    @JsonProperty(required = true, value = "principal")
+    private String principal;
 
     @JsonProperty(required = true, value = "status")
     private Status status;

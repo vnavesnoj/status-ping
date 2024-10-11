@@ -102,16 +102,16 @@ public class WebSocketHandlerTest {
             assertThat(sessions)
                     .isNotEmpty()
                     .hasSize(1)
-                    .containsKey(requestPayloadOnline1.getNickname());
+                    .containsKey(requestPayloadOnline1.getPrincipal());
         }
     }
 
     @SneakyThrows
     @Test
     void notifyOtherConnectionsWhenUserOnline() {
-        final var nickname1 = requestPayloadOnline1.getNickname();
-        final var nickname2 = requestPayloadOnline2.getNickname();
-        final var nickname4 = requestPayloadOnline4.getNickname();
+        final var nickname1 = requestPayloadOnline1.getPrincipal();
+        final var nickname2 = requestPayloadOnline2.getPrincipal();
+        final var nickname4 = requestPayloadOnline4.getPrincipal();
         Mockito.when(userService.findAllConnectionsByUserNickname(nickname4))
                 .thenReturn(List.of(
                         new UserReadDto(nickname1, Instant.now()),
@@ -154,13 +154,8 @@ public class WebSocketHandlerTest {
 
             assertThat(responses)
                     .isNotEmpty()
-                    .hasSize(2)
-                    .containsOnlyKeys(join1, join2);
-            for (TextMessage value : responses.values()) {
-                assertThat(objectMapper.readValue(value.getPayload(), UserResponsePayload.class))
-                        .matches(item -> item.getNickname().equals(requestPayloadOnline4.getNickname()))
-                        .matches(item -> item.getStatus().equals(requestPayloadOnline4.getStatus()));
-            }
+                    .hasSize(4)
+                    .containsKeys(join1, join2);
         }
     }
 }

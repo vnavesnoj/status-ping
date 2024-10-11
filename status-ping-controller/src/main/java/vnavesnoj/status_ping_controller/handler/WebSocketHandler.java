@@ -35,6 +35,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private final UserService userService;
     private final ObjectMapper objectMapper;
 
+    private final String decoratedSessionAttribute = "decoratedSession";
+
     public WebSocketHandler(WebSocketSessionsHolder<String> sessionHolder,
                             UserService userService,
                             ObjectMapper objectMapper) {
@@ -74,6 +76,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
             log.error("Cannot close session on afterConnectionClosed ", e);
         }
         Optional.of(session)
+                .map(item -> item.getAttributes().get(decoratedSessionAttribute))
+                .map(item -> (WebSocketSession) item)
                 .map(WebSocketSession::getPrincipal)
                 .map(Principal::getName)
                 .ifPresent(activeSessions::remove);
@@ -128,6 +132,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                             );
                         });
         log.info("Added new session connection. Key: %s. Session: %s".formatted(payload.getPrincipal(), session));
+        updatedSession.getAttributes().put(decoratedSessionAttribute, updatedSession);
         return updatedSession;
     }
 }

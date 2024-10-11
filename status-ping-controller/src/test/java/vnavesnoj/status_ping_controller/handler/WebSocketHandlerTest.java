@@ -1,4 +1,4 @@
-package vnavesnoj.status_ping_controller.it.handler;
+package vnavesnoj.status_ping_controller.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -10,10 +10,8 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketHandler;
-import org.springframework.web.socket.WebSocketMessage;
-import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.*;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
@@ -156,6 +154,44 @@ public class WebSocketHandlerTest {
                     .isNotEmpty()
                     .hasSize(4)
                     .containsKeys(join1, join2);
+        }
+    }
+
+    @SneakyThrows
+    @Test
+    void removeSessionAfterConnectionClosed() {
+        final var handler = new TextWebSocketHandler();
+        try (final var join1 = wsClient.execute(handler, null, uri).join();
+             final var join2 = wsClient.execute(handler, null, uri).join()) {
+            Thread.sleep(100);
+            assertThat(sessionsHolder.getSessions())
+                    .isEmpty();
+
+            final WebSocketMessage<String> message1 =
+                    new TextMessage(objectMapper.writeValueAsString(requestPayloadOnline1), true);
+            final WebSocketMessage<String> message2 =
+                    new TextMessage(objectMapper.writeValueAsString(requestPayloadOnline2), true);
+
+            join1.sendMessage(message1);
+            join2.sendMessage(message2);
+            Thread.sleep(100);
+
+            assertThat(sessionsHolder.getSessions())
+                    .hasSize(2)
+                    .containsOnlyKeys(requestPayloadOnline1.getPrincipal(), requestPayloadOnline2.getPrincipal());
+
+            join2.close(CloseStatus.GOING_AWAY);
+            Thread.sleep(100);
+
+            assertThat(sessionsHolder.getSessions())
+                    .hasSize(1)
+                    .containsKey(requestPayloadOnline1.getPrincipal());
+
+            join1.close();
+            Thread.sleep(100);
+
+            assertThat(sessionsHolder.getSessions())
+                    .isEmpty();
         }
     }
 }

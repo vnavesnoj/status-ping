@@ -1,4 +1,4 @@
-package vnavesnoj.status_ping_controller.it.handler;
+package vnavesnoj.status_ping_controller.handler;
 
 import lombok.Value;
 import org.springframework.web.socket.WebSocketMessage;

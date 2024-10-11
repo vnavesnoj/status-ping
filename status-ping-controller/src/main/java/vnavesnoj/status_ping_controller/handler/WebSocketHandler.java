@@ -83,6 +83,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 .ifPresent(activeSessions::remove);
     }
 
+    @Override
+    public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
+        log.error("Transport error detected: %s".formatted(exception));
+        log.debug(exception.getStackTrace());
+        super.handleTransportError(session, exception);
+    }
+
     private void notifyUserAboutSuccessSessionRegister(WebSocketSession session) throws IOException {
         final var principal = Optional.ofNullable(session.getPrincipal())
                 .map(Principal::getName)

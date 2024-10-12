@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
+import vnavesnoj.status_ping_controller.dto.ErrorResponsePayload;
 import vnavesnoj.status_ping_controller.dto.PrincipalResponsePayload;
 import vnavesnoj.status_ping_controller.dto.Status;
 import vnavesnoj.status_ping_controller.dto.UserStatusResponsePayload;
@@ -63,6 +65,22 @@ public class WsNotifier {
                 log.error("Exception, when sending response to '%s' about '%s' status '%s': %s"
                         .formatted(user.getNickname(), nickname, status, e));
             }
+        }
+    }
+
+    public void notifySessionAboutError(WebSocketSession session, Throwable throwable, HttpStatus httpStatus)
+            throws IOException {
+        final var serverErrorRequest = new ErrorResponsePayload(
+                httpStatus.value(),
+                httpStatus.getReasonPhrase(),
+                throwable.getMessage(),
+                Instant.now()
+        );
+        if (session.isOpen()) {
+            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(serverErrorRequest)));
+            log.info("Send an error message to the session %s. Error: %s".formatted(session, throwable));
+        } else {
+            log.warn("Cannot send an error message to the session %s. Error: %s".formatted(session, throwable));
         }
     }
 }

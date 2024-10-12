@@ -85,7 +85,10 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 .map(item -> (WebSocketSession) item)
                 .map(WebSocketSession::getPrincipal)
                 .map(Principal::getName)
-                .ifPresent(activeSessions::remove);
+                .ifPresent(item -> {
+                    activeSessions.remove(item);
+                    wsNotifier.notifyAllUserConnectionsAboutUserStatus(item, Status.OFFLINE);
+                });
     }
 
     @Override

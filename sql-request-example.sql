@@ -10,4 +10,5 @@ FROM private_users p1
     ORDER BY created_at DESC
     LIMIT 1
     ) m ON true
-WHERE u1.nickname = ':1' AND u2.nickname != ':1';
+WHERE u1.nickname = :nickname
+  AND u2.nickname != :nickname;

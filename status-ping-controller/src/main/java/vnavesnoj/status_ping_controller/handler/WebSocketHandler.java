@@ -15,7 +15,6 @@ import vnavesnoj.status_ping_controller.exception.WsMessageRequestException;
 import vnavesnoj.status_ping_controller.handler.component.SessionRegistrar;
 import vnavesnoj.status_ping_controller.handler.component.WsNotifier;
 import vnavesnoj.status_ping_controller.holder.WebSocketSessionsHolder;
-import vnavesnoj.status_ping_service.service.UserService;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -31,7 +30,6 @@ import java.util.Optional;
 public class WebSocketHandler extends TextWebSocketHandler {
 
     private final Map<String, WebSocketSession> activeSessions;
-    private final UserService userService;
     private final ObjectMapper objectMapper;
     private final SessionRegistrar sessionRegistrar;
     private final WsNotifier wsNotifier;
@@ -39,12 +37,10 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private final String decoratedSessionAttribute = "decoratedSession";
 
     public WebSocketHandler(WebSocketSessionsHolder<String> sessionHolder,
-                            UserService userService,
                             ObjectMapper objectMapper,
                             SessionRegistrar sessionRegistrar,
                             WsNotifier wsNotifier) {
         this.activeSessions = sessionHolder.getSessions();
-        this.userService = userService;
         this.objectMapper = objectMapper;
         this.sessionRegistrar = sessionRegistrar;
         this.wsNotifier = wsNotifier;

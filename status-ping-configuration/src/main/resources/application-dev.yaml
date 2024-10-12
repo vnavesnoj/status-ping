@@ -2,10 +2,5 @@ spring:
   application:
     name: status-ping-dev-configuration
 
-  jpa:
-    properties:
-      hibernate:
-        show_sql: true
-
   config:
     import: datasource-dev.yaml

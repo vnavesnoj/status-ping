@@ -11,4 +11,6 @@ import java.util.Map;
 public interface WebSocketSessionsHolder<T> {
 
     Map<T, WebSocketSession> getSessions();
+
+    void updateSessionConnections();
 }

@@ -72,8 +72,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
             );
             final var detail = "message request must be in JSON format: %s".formatted(requestTemplate);
             throw new WsMessageRequestException(detail, e);
-        } catch (Exception e) {
-            log.error(e);
         }
         super.handleTextMessage(session, message);
     }
@@ -83,7 +81,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         try {
             session.close();
         } catch (IOException e) {
-            log.error("Cannot close session on afterConnectionClosed ", e);
+            log.warn("Cannot close session on afterConnectionClosed ", e);
         }
         Optional.of(session)
                 .map(item -> item.getAttributes().get(decoratedSessionAttribute))

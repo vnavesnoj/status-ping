@@ -33,9 +33,11 @@ public class ExceptionWsHandlerDecorator extends WebSocketHandlerDecorator {
         try {
             super.handleMessage(session, message);
         } catch (WsMessageRequestException e) {
+            log.warn("Exception when handle message: %s".formatted(e));
             handleWsMessageRequestException(e, session);
         } catch (Throwable e) {
-            log.error("Exception when handle web socket message exception: %s".formatted(e));
+            log.error("Exception when handle message: %s".formatted(e));
+            handleThrowable(e, session);
         }
     }
 
@@ -48,6 +50,18 @@ public class ExceptionWsHandlerDecorator extends WebSocketHandlerDecorator {
         );
         if (session.isOpen()) {
             session.sendMessage(new TextMessage(objectMapper.writeValueAsString(badMessageRequest)));
+        }
+    }
+
+    private void handleThrowable(Throwable exception, WebSocketSession session) throws IOException {
+        final var serverErrorRequest = new ErrorResponsePayload(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "internal server error",
+                exception.getMessage(),
+                Instant.now()
+        );
+        if (session.isOpen()) {
+            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(serverErrorRequest)));
         }
     }
 }

@@ -1,8 +1,7 @@
 package vnavesnoj.status_ping_controller.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Value;
+import org.springframework.http.HttpStatus;
 
 import java.time.Instant;
 
@@ -10,14 +9,14 @@ import java.time.Instant;
  * @author vnavesnoj
  * @mail vnavesnoj@gmail.com
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Value
 public class PrincipalResponsePayload {
 
-    private String id;
+    Integer statusCode = HttpStatus.OK.value();
 
-    private String principal;
+    String id;
 
-    private Instant instant;
+    String principal;
+
+    Instant instant;
 }

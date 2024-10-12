@@ -7,6 +7,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 import vnavesnoj.status_ping_controller.dto.UserRequestPayload;
+import vnavesnoj.status_ping_controller.exception.WsAlreadyRegisteredException;
 import vnavesnoj.status_ping_controller.handler.decorator.PrincipalWsSessionDecorator;
 import vnavesnoj.status_ping_controller.holder.WebSocketSessionsHolder;
 
@@ -24,11 +25,11 @@ public class SessionRegistrar {
     private final WebSocketSessionsHolder<String> sessionsHolder;
     private final String decoratedSessionAttribute = "decoratedSession";
 
-    public WebSocketSession registerNewSession(WebSocketSession session, UserRequestPayload payload) {
-        final WebSocketSession updatedSession = session.getPrincipal() == null
-                || !payload.getPrincipal().equals(session.getPrincipal().getName())
-                ? new PrincipalWsSessionDecorator(session, new UserPrincipal(payload.getPrincipal()))
-                : session;
+    public WebSocketSession registerNewSession(@NonNull WebSocketSession session, @NonNull UserRequestPayload payload) {
+        final var updatedSession = Optional.of(session)
+                .filter(item -> !isRegistered(item))
+                .map(item -> new PrincipalWsSessionDecorator(session, new UserPrincipal(payload.getPrincipal())))
+                .orElseThrow(() -> new WsAlreadyRegisteredException("Session %s already registered"));
         Optional.of(payload)
                 .map(UserRequestPayload::getPrincipal)
                 .ifPresentOrElse(

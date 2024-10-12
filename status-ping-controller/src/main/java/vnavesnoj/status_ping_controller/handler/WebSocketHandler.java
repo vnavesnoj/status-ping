@@ -3,7 +3,6 @@ package vnavesnoj.status_ping_controller.handler;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.security.auth.UserPrincipal;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
@@ -16,7 +15,7 @@ import vnavesnoj.status_ping_controller.dto.Status;
 import vnavesnoj.status_ping_controller.dto.UserRequestPayload;
 import vnavesnoj.status_ping_controller.dto.UserStatusResponsePayload;
 import vnavesnoj.status_ping_controller.exception.WsMessageRequestException;
-import vnavesnoj.status_ping_controller.handler.decorator.PrincipalWsSessionDecorator;
+import vnavesnoj.status_ping_controller.handler.component.SessionRegistrar;
 import vnavesnoj.status_ping_controller.holder.WebSocketSessionsHolder;
 import vnavesnoj.status_ping_service.dto.UserReadDto;
 import vnavesnoj.status_ping_service.service.UserService;
@@ -38,15 +37,18 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private final Map<String, WebSocketSession> activeSessions;
     private final UserService userService;
     private final ObjectMapper objectMapper;
+    private final SessionRegistrar sessionRegistrar;
 
     private final String decoratedSessionAttribute = "decoratedSession";
 
     public WebSocketHandler(WebSocketSessionsHolder<String> sessionHolder,
                             UserService userService,
-                            ObjectMapper objectMapper) {
+                            ObjectMapper objectMapper,
+                            SessionRegistrar sessionRegistrar) {
         this.activeSessions = sessionHolder.getSessions();
         this.userService = userService;
         this.objectMapper = objectMapper;
+        this.sessionRegistrar = sessionRegistrar;
     }
 
     @Override
@@ -61,7 +63,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         try {
             final var payload = objectMapper.readValue(message.getPayload(), UserRequestPayload.class);
             if (payload.getPrincipal() != null && !payload.getPrincipal().isBlank() && payload.getStatus() != null) {
-                session = registerNewSession(session, payload);
+                session = sessionRegistrar.registerNewSession(session, payload);
                 notifyUserAboutSuccessSessionRegister(session);
                 notifyAllUserConnectionsAboutUserStatus(payload.getPrincipal(), payload.getStatus());
             }
@@ -130,24 +132,5 @@ public class WebSocketHandler extends TextWebSocketHandler {
             session.sendMessage(message);
             log.info("Send new message to session %s. Text message: %s".formatted(session, message));
         }
-    }
-
-    private WebSocketSession registerNewSession(WebSocketSession session, UserRequestPayload payload) {
-        final WebSocketSession updatedSession = session.getPrincipal() == null
-                || !payload.getPrincipal().equals(session.getPrincipal().getName())
-                ? new PrincipalWsSessionDecorator(session, new UserPrincipal(payload.getPrincipal()))
-                : session;
-        Optional.of(payload)
-                .map(UserRequestPayload::getPrincipal)
-                .ifPresentOrElse(
-                        item -> activeSessions.put(payload.getPrincipal(), updatedSession),
-                        () -> {
-                            throw new NullPointerException(
-                                    UserRequestPayload.class.getCanonicalName() + ".nickname is null"
-                            );
-                        });
-        log.info("Added new session connection. Key: %s. Session: %s".formatted(payload.getPrincipal(), session));
-        updatedSession.getAttributes().put(decoratedSessionAttribute, updatedSession);
-        return updatedSession;
     }
 }

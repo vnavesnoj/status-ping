@@ -36,3 +36,4 @@ out/
 ### VS Code ###
 .vscode/
 /status-ping-configuration/src/main/resources/datasource-dev.yaml
+/test-script.sql

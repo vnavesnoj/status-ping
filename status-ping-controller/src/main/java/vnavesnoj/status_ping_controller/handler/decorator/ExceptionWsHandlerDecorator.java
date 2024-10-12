@@ -6,6 +6,7 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.WebSocketHandlerDecorator;
+import vnavesnoj.status_ping_controller.exception.WsAlreadyRegisteredException;
 import vnavesnoj.status_ping_controller.exception.WsMessageRequestException;
 import vnavesnoj.status_ping_controller.handler.component.WsNotifier;
 
@@ -31,6 +32,9 @@ public class ExceptionWsHandlerDecorator extends WebSocketHandlerDecorator {
         } catch (WsMessageRequestException e) {
             log.warn("Exception when handle message: %s".formatted(e));
             wsNotifier.notifySessionAboutError(session, e, HttpStatus.BAD_REQUEST);
+        } catch (WsAlreadyRegisteredException e) {
+            log.warn("Exception when handle message: %s".formatted(e));
+            wsNotifier.notifySessionAboutError(session, e, HttpStatus.CONFLICT);
         } catch (Throwable e) {
             log.error("Exception when handle message: %s".formatted(e));
             wsNotifier.notifySessionAboutError(session, e, HttpStatus.INTERNAL_SERVER_ERROR);

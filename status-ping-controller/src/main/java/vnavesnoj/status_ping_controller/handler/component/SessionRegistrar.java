@@ -29,7 +29,7 @@ public class SessionRegistrar {
         final var updatedSession = Optional.of(session)
                 .filter(item -> !isRegistered(item))
                 .map(item -> new PrincipalWsSessionDecorator(session, new UserPrincipal(payload.getPrincipal())))
-                .orElseThrow(() -> new WsAlreadyRegisteredException("Session %s already registered"));
+                .orElseThrow(() -> new WsAlreadyRegisteredException("Session %s already registered".formatted(session)));
         Optional.of(payload)
                 .map(UserRequestPayload::getPrincipal)
                 .ifPresentOrElse(

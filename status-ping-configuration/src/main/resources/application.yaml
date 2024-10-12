@@ -12,7 +12,7 @@ spring:
 app:
   sql:
     findAllByNickname:
-      path: file:sql-request.sql
+      path: file:D:\Work\projects\status-ping\test-script.sql
   websocket:
     endpoints: '/status'
     allowed-origins: '*'

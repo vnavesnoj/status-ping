@@ -1,5 +1,6 @@
 package vnavesnoj.status_ping_controller.handler;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.security.auth.UserPrincipal;
 import lombok.NonNull;
@@ -13,6 +14,7 @@ import vnavesnoj.status_ping_controller.dto.PrincipalResponsePayload;
 import vnavesnoj.status_ping_controller.dto.Status;
 import vnavesnoj.status_ping_controller.dto.UserRequestPayload;
 import vnavesnoj.status_ping_controller.dto.UserStatusResponsePayload;
+import vnavesnoj.status_ping_controller.exception.WsMessageRequestException;
 import vnavesnoj.status_ping_controller.holder.WebSocketSessionsHolder;
 import vnavesnoj.status_ping_service.dto.UserReadDto;
 import vnavesnoj.status_ping_service.service.UserService;
@@ -62,6 +64,12 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 notifyAllUserConnectionsAboutUserStatus(payload.getPrincipal(), payload.getStatus());
             }
 
+        } catch (JsonMappingException e) {
+            final var requestTemplate = objectMapper.writeValueAsString(
+                    new UserRequestPayload(UserRequestPayload.Fields.principal, Status.ONLINE)
+            );
+            final var detail = "message request must be in JSON format:\n%s".formatted(requestTemplate);
+            throw new WsMessageRequestException(detail, e);
         } catch (Exception e) {
             log.error(e);
         }

@@ -1,4 +1,4 @@
-package vnavesnoj.status_ping_controller.handler;
+package vnavesnoj.status_ping_controller.handler.decorator;
 
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.WebSocketSessionDecorator;

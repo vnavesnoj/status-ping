@@ -3,6 +3,7 @@ package vnavesnoj.status_ping_controller.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author vnavesnoj
  * @mail vnavesnoj@gmail.com
  */
+@Log4j2
 @RequiredArgsConstructor
 @UT
 //@TestInstance(TestInstance.Lifecycle.PER_METHOD)
@@ -192,6 +194,28 @@ public class WebSocketHandlerTest {
 
             assertThat(sessionsHolder.getSessions())
                     .isEmpty();
+        }
+    }
+
+    @SneakyThrows
+    @Test
+    void whenWsMessageExceptionReturnErrorResponsePayload() {
+        final var handler = new TextWebSocketHandler() {
+            @Override
+            protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+                responses.put(session, message);
+            }
+        };
+        try (final var join = wsClient.execute(handler, null, uri).join()) {
+            join.sendMessage(new TextMessage("dummy"));
+            Thread.sleep(100);
+
+            assertThat(responses)
+                    .hasSize(1)
+                    .containsKey(join);
+
+            final var textMessage = responses.get(join);
+            log.info("Response: %s".formatted(textMessage.getPayload()));
         }
     }
 }

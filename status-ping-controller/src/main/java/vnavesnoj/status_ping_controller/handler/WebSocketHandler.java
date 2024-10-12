@@ -3,6 +3,7 @@ package vnavesnoj.status_ping_controller.handler;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.ValidationException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -61,9 +62,10 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 session = sessionRegistrar.registerNewSession(session, payload);
                 wsNotifier.notifyUserAboutSuccessSessionRegister(session);
                 wsNotifier.notifyAllUserConnectionsAboutUserStatus(payload.getPrincipal(), payload.getStatus());
+            } else {
+                throw new ValidationException("Payload properties cannot be null or blank");
             }
-
-        } catch (JsonParseException | JsonMappingException e) {
+        } catch (JsonParseException | JsonMappingException | ValidationException e) {
             final var requestTemplate = objectMapper.writeValueAsString(
                     new UserRequestPayload(UserRequestPayload.Fields.principal, Status.ONLINE)
             );

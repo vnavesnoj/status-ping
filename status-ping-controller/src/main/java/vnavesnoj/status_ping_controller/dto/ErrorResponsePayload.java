@@ -11,7 +11,11 @@ import java.time.Instant;
 @Value
 public class ErrorResponsePayload {
 
-    String error;
+    Integer statusCode;
+
+    String title;
+
+    String detail;
 
     Instant instant;
 }

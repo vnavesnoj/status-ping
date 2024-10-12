@@ -25,13 +25,18 @@ public class UserRepositoryImpl implements UserRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     private final String findAllByNicknameCommand;
+    private final String sqlParameter;
 
     public UserRepositoryImpl(NamedParameterJdbcTemplate jdbcTemplate,
                               @Value("${app.sql.findAllByNickname.path}")
                               String commandPath,
+                              @Value("${app.sql.findAllByNickname.parameter:nickname}")
+                              String parameter,
                               @Autowired ResourceLoader resourceLoader) {
         this.jdbcTemplate = jdbcTemplate;
+        this.sqlParameter = parameter;
         final var resource = resourceLoader.getResource(commandPath);
+
         try {
             findAllByNicknameCommand = resource.getContentAsString(StandardCharsets.UTF_8);
             log.info("findAllByNicknameCommand is set from file: %s".formatted(commandPath));
@@ -45,7 +50,7 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public List<UserEntity> findAllConnectionsByUserNickname(String nickname) {
         log.trace(UserRepositoryImpl.class.getCanonicalName() + ": findAllConnectionByUserNickname(%s)".formatted(nickname));
-        final var params = new MapSqlParameterSource("nickname", nickname);
+        final var params = new MapSqlParameterSource(sqlParameter, nickname);
         final var result = jdbcTemplate.query(findAllByNicknameCommand, params, new SingleColumnRowMapper<>(UserEntity.class));
         log.debug("findAllConnectionByUserNickname(%s): fetched data = %s".formatted(nickname, result));
         return result;

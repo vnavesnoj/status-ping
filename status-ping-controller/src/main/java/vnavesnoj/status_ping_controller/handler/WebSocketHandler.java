@@ -3,26 +3,22 @@ package vnavesnoj.status_ping_controller.handler;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
-import vnavesnoj.status_ping_controller.dto.PrincipalResponsePayload;
 import vnavesnoj.status_ping_controller.dto.Status;
 import vnavesnoj.status_ping_controller.dto.UserRequestPayload;
-import vnavesnoj.status_ping_controller.dto.UserStatusResponsePayload;
 import vnavesnoj.status_ping_controller.exception.WsMessageRequestException;
 import vnavesnoj.status_ping_controller.handler.component.SessionRegistrar;
+import vnavesnoj.status_ping_controller.handler.component.WsNotifier;
 import vnavesnoj.status_ping_controller.holder.WebSocketSessionsHolder;
-import vnavesnoj.status_ping_service.dto.UserReadDto;
 import vnavesnoj.status_ping_service.service.UserService;
 
 import java.io.IOException;
 import java.security.Principal;
-import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 
@@ -38,17 +34,20 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private final UserService userService;
     private final ObjectMapper objectMapper;
     private final SessionRegistrar sessionRegistrar;
+    private final WsNotifier wsNotifier;
 
     private final String decoratedSessionAttribute = "decoratedSession";
 
     public WebSocketHandler(WebSocketSessionsHolder<String> sessionHolder,
                             UserService userService,
                             ObjectMapper objectMapper,
-                            SessionRegistrar sessionRegistrar) {
+                            SessionRegistrar sessionRegistrar,
+                            WsNotifier wsNotifier) {
         this.activeSessions = sessionHolder.getSessions();
         this.userService = userService;
         this.objectMapper = objectMapper;
         this.sessionRegistrar = sessionRegistrar;
+        this.wsNotifier = wsNotifier;
     }
 
     @Override
@@ -64,8 +63,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
             final var payload = objectMapper.readValue(message.getPayload(), UserRequestPayload.class);
             if (payload.getPrincipal() != null && !payload.getPrincipal().isBlank() && payload.getStatus() != null) {
                 session = sessionRegistrar.registerNewSession(session, payload);
-                notifyUserAboutSuccessSessionRegister(session);
-                notifyAllUserConnectionsAboutUserStatus(payload.getPrincipal(), payload.getStatus());
+                wsNotifier.notifyUserAboutSuccessSessionRegister(session);
+                wsNotifier.notifyAllUserConnectionsAboutUserStatus(payload.getPrincipal(), payload.getStatus());
             }
 
         } catch (JsonParseException | JsonMappingException e) {
@@ -98,39 +97,5 @@ public class WebSocketHandler extends TextWebSocketHandler {
         log.error("Transport error detected: %s".formatted(exception));
         log.debug(exception.getStackTrace());
         super.handleTransportError(session, exception);
-    }
-
-    private void notifyUserAboutSuccessSessionRegister(WebSocketSession session) throws IOException {
-        final var principal = Optional.ofNullable(session.getPrincipal())
-                .map(Principal::getName)
-                .orElseThrow(NullPointerException::new);
-        final var message = new TextMessage(objectMapper.writeValueAsString(
-                new PrincipalResponsePayload(session.getId(), principal, Instant.now())
-        ));
-        session.sendMessage(message);
-        log.debug("Notify session %s about success session register".formatted(session));
-    }
-
-    private void notifyAllUserConnectionsAboutUserStatus(@NonNull String nickname, @NonNull Status status) {
-        for (UserReadDto user : userService.findAllConnectionsByUserNickname(nickname)) {
-            try {
-                notifyAboutUserStatus(nickname, user, status);
-            } catch (Exception e) {
-                log.error("Exception, when sending response to '%s' about '%s' status '%s': %s"
-                        .formatted(user.getNickname(), nickname, status, e));
-            }
-        }
-    }
-
-    private void notifyAboutUserStatus(@NonNull String nickname, @NonNull UserReadDto user, Status status) throws IOException {
-        final var session = activeSessions.get(user.getNickname());
-        if (session != null && session.isOpen()) {
-            final var responsePayload = objectMapper.writeValueAsString(
-                    new UserStatusResponsePayload(nickname, status, Instant.now())
-            );
-            final var message = new TextMessage(responsePayload);
-            session.sendMessage(message);
-            log.info("Send new message to session %s. Text message: %s".formatted(session, message));
-        }
     }
 }

@@ -19,7 +19,7 @@ import vnavesnoj.status_ping_controller.UT;
 import vnavesnoj.status_ping_controller.config.WebSocketProperties;
 import vnavesnoj.status_ping_controller.dto.Status;
 import vnavesnoj.status_ping_controller.dto.UserRequestPayload;
-import vnavesnoj.status_ping_controller.dto.UserResponsePayload;
+import vnavesnoj.status_ping_controller.dto.UserStatusResponsePayload;
 import vnavesnoj.status_ping_controller.holder.WebSocketSessionsHolder;
 import vnavesnoj.status_ping_service.dto.UserReadDto;
 import vnavesnoj.status_ping_service.service.UserService;
@@ -61,7 +61,7 @@ public class WebSocketHandlerTest {
     private UserRequestPayload requestPayloadOnline2 = new UserRequestPayload("dummy2", Status.ONLINE);
     private UserRequestPayload requestPayloadOnline3 = new UserRequestPayload("dummy3", Status.ONLINE);
     private UserRequestPayload requestPayloadOnline4 = new UserRequestPayload("dummy4", Status.ONLINE);
-    private UserResponsePayload responsePayloadOnline4 = new UserResponsePayload("dummy4", Status.ONLINE, Instant.now());
+    private UserStatusResponsePayload responsePayloadOnline4 = new UserStatusResponsePayload("dummy4", Status.ONLINE, Instant.now());
     private Map<WebSocketSession, TextMessage> responses;
 
     @SneakyThrows

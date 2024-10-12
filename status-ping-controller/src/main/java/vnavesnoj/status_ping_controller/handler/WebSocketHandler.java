@@ -12,7 +12,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import vnavesnoj.status_ping_controller.dto.PrincipalResponsePayload;
 import vnavesnoj.status_ping_controller.dto.Status;
 import vnavesnoj.status_ping_controller.dto.UserRequestPayload;
-import vnavesnoj.status_ping_controller.dto.UserResponsePayload;
+import vnavesnoj.status_ping_controller.dto.UserStatusResponsePayload;
 import vnavesnoj.status_ping_controller.holder.WebSocketSessionsHolder;
 import vnavesnoj.status_ping_service.dto.UserReadDto;
 import vnavesnoj.status_ping_service.service.UserService;
@@ -116,7 +116,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         final var session = activeSessions.get(user.getNickname());
         if (session != null && session.isOpen()) {
             final var responsePayload = objectMapper.writeValueAsString(
-                    new UserResponsePayload(nickname, status, Instant.now())
+                    new UserStatusResponsePayload(nickname, status, Instant.now())
             );
             final var message = new TextMessage(responsePayload);
             session.sendMessage(message);
